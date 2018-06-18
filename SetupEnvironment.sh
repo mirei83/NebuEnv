@@ -16,6 +16,9 @@ apt-get -y install build-essential libgflags-dev libsnappy-dev zlib1g-dev libbz2
 
 
 ### Get Files for NebuEnv
+cd ~
+git clone https://github.com/mirei83/NebuEnv.git
+
 
 ### Install go
 echo "########################"
@@ -58,15 +61,14 @@ git checkout master
 make dep
 make deploy-v8
 make build
-mkdir conf/local
-cd conf/local
-wget https://raw.githubusercontent.com/mirei83/Nebulas/master/NebuEnv/local/config.conf
-wget https://raw.githubusercontent.com/mirei83/Nebulas/master/NebuEnv/local/genesis.conf
-wget https://raw.githubusercontent.com/mirei83/Nebulas/master/NebuEnv/local/miner.conf
-cd ~
+mv $HOME/NebuEnv/local $GOPATH/src/github.com/nebulasio/go-nebulas/conf/
+
 
 #### Install WebWallet with web browser on port 80
+cd ~
 apt-get install -y nginx
+rm -rf /var/www/html
+mv $HOME/NebuEnv/html /var/www/
 cd /var/www/html
 git clone https://github.com/nebulasio/web-wallet.git
 
@@ -94,14 +96,23 @@ sed -i -e "s/Local Nodes/$IPADDRESS/g" /var/www/html/web-wallet/js/ui-block.js
 
 
 ### Create StartUp-Script
-
 echo "########################"
 echo "Creating Startup Miner Script"
 echo "########################"
-cd
-echo '#!/bin/bash' >> ./start-nebulas-LocalNode.sh
-echo "cd $GOPATH/src/github.com/nebulasio/go-nebulas"  >> ./start-nebulas-LocalNode.sh
-echo "$GOPATH/src/github.com/nebulasio/go-nebulas/neb -c $GOPATH/src/github.com/nebulasio/go-nebulas/conf/local/config.conf > /dev/null 2>&1 & " >> ./start-nebulas-LocalNode.sh
-echo "$GOPATH/src/github.com/nebulasio/go-nebulas/neb -c $GOPATH/src/github.com/nebulasio/go-nebulas/conf/local/miner.conf > /dev/null 2>&1 & " >> ./start-nebulas-LocalNode.sh
-chmod +x ./start-nebulas-LocalNode.sh
+cd ~
+mv $HOME/NebuEnv/startup/start-nebulas-privatenet.sh $HOME
+chmod +x $HOME/start-nebulas-privatenet.sh
+
+
+### Prepare Autostart
+
+mv $HOME/NebuEnv/startup/nebulas-privatenet.service /etc/systemd/system/
+chmod 664 /etc/systemd/system/nebulas-privatenet.service
+
+mv $HOME/NebuEnv/startup/nebulas-private.sh /usr/local/bin/
+chmod 744 /usr/local/bin/nebulas-private.sh
+
+systemctl daemon-reload
+systemctl enable nebulas-privatenet.service
+
 
