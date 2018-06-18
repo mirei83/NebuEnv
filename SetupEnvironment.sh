@@ -105,14 +105,6 @@ chmod +x $HOME/start-nebulas-privatenet.sh
 
 
 ### Prepare Autostart
-
-mv $HOME/NebuEnv/startup/nebulas-privatenet.service /etc/systemd/system/
-chmod 664 /etc/systemd/system/nebulas-privatenet.service
-
-mv $HOME/NebuEnv/startup/nebulas-private.sh /usr/local/bin/
-chmod 744 /usr/local/bin/nebulas-private.sh
-
-systemctl daemon-reload
-systemctl enable nebulas-privatenet.service
-
+crontab -l > mycron
+echo "@reboot root $HOME/.profile; /root/start-nebulas-privatenet.sh " >> mycron
 
