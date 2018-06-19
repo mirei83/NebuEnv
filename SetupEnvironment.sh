@@ -14,11 +14,9 @@ mkdir -p $GOPATH/src
 apt-get update
 apt-get -y install build-essential libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev git make automake build-essential cmake curl
 
-
 ### Get Files for NebuEnv
 cd ~
 git clone https://github.com/mirei83/NebuEnv.git
-
 
 ### Install go
 echo "########################"
@@ -58,13 +56,19 @@ cd $GOPATH/src/github.com/nebulasio
 git clone https://github.com/nebulasio/go-nebulas.git
 cd go-nebulas
 git checkout master
+### Change Dynasty frpm 21 to 1 for a 2 Node Network
+sed -i -e "s/= 21/= 1/g" $GOPATH/src/github.com/nebulasio/go-nebulas/consensus/dpos/dpos_state.go
+sed -i -e "s/*2\/3 + 1//g" $GOPATH/src/github.com/nebulasio/go-nebulas/consensus/dpos/dpos_state.go
 make dep
 make deploy-v8
 make build
 mv $HOME/NebuEnv/local $GOPATH/src/github.com/nebulasio/go-nebulas/conf/
+echo "export PATH=$PATH:/usr/local/go/bin" >> /etc/profile
+echo "export GOPATH=/root/go" >> /etc/profile
 
 
-#### Install WebWallet with web browser on port 80
+
+#### Install WebWallet with web browser on port 80:q!
 cd ~
 apt-get install -y nginx
 rm -rf /var/www/html
@@ -103,8 +107,8 @@ cd ~
 mv $HOME/NebuEnv/startup/start-nebulas-privatenet.sh $HOME
 chmod +x $HOME/start-nebulas-privatenet.sh
 
-
 ### Prepare Autostart
 crontab -l > mycron
 echo "@reboot root $HOME/.profile; /root/start-nebulas-privatenet.sh " >> mycron
-
+crontab mycron
+rm mycron
