@@ -3,6 +3,9 @@
 ### Supported OS: Ubuntu 16.04 
 
 ## activate Swap
+echo "########################"
+echo "Activating Swap"
+echo "########################"
 dd if=/dev/zero of=/mnt/myswap.swap bs=1M count=4000 &&  mkswap /mnt/myswap.swap &&  swapon /mnt/myswap.swap
 echo "/mnt/swap.img    none    swap    sw    0    0" >> /etc/fstab
 
@@ -115,11 +118,10 @@ echo -e "[client]\nuser=root\npassword=$ROOT_SQL_PASS" | sudo tee /root/.my.cnf
 sudo apt-get install -y openjdk-8-jdk redis-server mysql-server
 ## Create DB
 mysql -u root --password=$ROOT_SQL_PASS < src/main/resources/deploy_schema.sql 
-source build-expl.sh
+chmod +x build-expl.sh
+./build-expl.sh
 
-
-
-### Create StartUp-Script
+## Create StartUp-Script
 echo "########################"
 echo "Creating Node Startup Script"
 echo "########################"
