@@ -68,47 +68,72 @@ echo "export GOPATH=/root/go" >> /etc/profile
 
 
 
-#### Install WebWallet with web browser on port 80:q!
+#### Install WebWallet with web browser on port 80
 cd ~
 apt-get install -y nginx
 rm -rf /var/www/html
 mv $HOME/NebuEnv/html /var/www/
+
+## Change IP to Node
+IPADDRESS="`ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'`"
+sed -i -e "s/123.123.123.123/$IPADDRESS/g" /var/www/html/index.html
 cd /var/www/html
 git clone https://github.com/nebulasio/web-wallet.git
 
 ### Remove all real Nodes from list and just add localnode
-IPADDRESS="`ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'`"
 sed -i -e 's/{.*Mainnet.*}\,//g' /var/www/html/web-wallet/js/ui-block.js
 sed -i -e 's/{.*Testnet.*}\,//g' /var/www/html/web-wallet/js/ui-block.js
 sed -i -e "s/127.0.0.1/$IPADDRESS/g" /var/www/html/web-wallet/js/ui-block.js
 sed -i -e "s/Local Nodes/$IPADDRESS/g" /var/www/html/web-wallet/js/ui-block.js
 
 
-### Install Explorer
-##cd ~
-##curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-##sudo apt-get install -y nodejs
-##git clone https://github.com/nebulasio/explorer.git
-##Fronend
-##cd explorer/explorer-front
-##npm i
-##sed -i -e "s/localhost/0.0.0.0/g" config/index.js
-## npm run dev
-## BackEnd
-##cd ../explorer-backend
-##sudo apt-get install -y openjdk-8-jdk redis-server mysql-server
+## Install NodeJS
+cd ~
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+## Install Explorer
+git clone https://github.com/mirei83/explorer
+## Explorer Fronend
+## Change IP to NodeIP
+IPADDRESS="`ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'`"
+sed -i -e "s/123.123.123.123/$IPADDRESS/g" explorer/explorer-front/src/assets/app-config.js
+cd explorer/explorer-front
+npm i
+## Explorer BackEnd
+cd ../explorer-backend
+## Set Env to install mySQL with RootPW
+ROOT_SQL_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $ROOT_SQL_PASS"
+sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $ROOT_SQL_PASS"
+echo -e "[client]\nuser=root\npassword=$ROOT_SQL_PASS" | sudo tee /root/.my.cnf
+## Install MySQL / Java
+sudo apt-get install -y openjdk-8-jdk redis-server mysql-server
+## Create DB
+mysql -u root --password=$ROOT_SQL_PASS < src/main/resources/deploy_schema.sql 
+source build-expl.sh
+
 
 
 ### Create StartUp-Script
 echo "########################"
-echo "Creating Startup Miner Script"
+echo "Creating Node Startup Script"
 echo "########################"
 cd ~
 mv $HOME/NebuEnv/startup/start-nebulas-privatenet.sh $HOME
 chmod +x $HOME/start-nebulas-privatenet.sh
 
+echo "########################"
+echo "Creating Explorer Startup Script"
+echo "########################"
+cd ~
+mv $HOME/NebuEnv/startup/explorer-privatenet.sh $HOME
+chmod +x $HOME/explorer-privatenet.sh
+
+
 ### Prepare Autostart
 crontab -l > mycron
 echo "@reboot root $HOME/.profile; /root/start-nebulas-privatenet.sh " >> mycron
+echo "@reboot root $HOME/.profile; /root/explorer-privatenet.sh " >> mycron
 crontab mycron
 rm mycron
