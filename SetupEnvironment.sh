@@ -2,6 +2,10 @@
 
 ### Supported OS: Ubuntu 16.04 
 
+## activate Swap
+dd if=/dev/zero of=/mnt/myswap.swap bs=1M count=4000 &&  mkswap /mnt/myswap.swap &&  swapon /mnt/myswap.swap
+echo "/mnt/swap.img    none    swap    sw    0    0" >> /etc/fstab
+
 
 ## Set environment paths for GO
 export PATH=$PATH:/usr/local/go/bin
