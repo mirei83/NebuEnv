@@ -93,6 +93,29 @@ sed -i -e 's/{.*Testnet.*}\,//g' /var/www/html/web-wallet/js/ui-block.js
 sed -i -e "s/127.0.0.1/$IPADDRESS/g" /var/www/html/web-wallet/js/ui-block.js
 sed -i -e "s/Local Nodes/$IPADDRESS/g" /var/www/html/web-wallet/js/ui-block.js
 
+## Create StartUp-Script
+echo "########################"
+echo "Creating Node Startup Script"
+echo "########################"
+cd ~
+mv $HOME/NebuEnv/startup/start-nebulas-privatenet.sh $HOME
+chmod +x $HOME/start-nebulas-privatenet.sh
+
+echo "########################"
+echo "Creating Explorer Startup Script"
+echo "########################"
+cd ~
+mv $HOME/NebuEnv/startup/explorer-privatenet.sh $HOME
+chmod +x $HOME/explorer-privatenet.sh
+
+
+### Prepare Autostart
+crontab -l > mycron
+echo "@reboot root $HOME/.profile; /root/start-nebulas-privatenet.sh " >> mycron
+echo "@reboot root $HOME/.profile; /root/explorer-privatenet.sh " >> mycron
+crontab mycron
+rm mycron
+
 
 ## Install NodeJS
 cd ~
@@ -120,26 +143,3 @@ sudo apt-get install -y openjdk-8-jdk redis-server mysql-server
 mysql -u root --password=$ROOT_SQL_PASS < src/main/resources/deploy_schema.sql 
 chmod +x build-expl.sh
 ./build-expl.sh
-
-## Create StartUp-Script
-echo "########################"
-echo "Creating Node Startup Script"
-echo "########################"
-cd ~
-mv $HOME/NebuEnv/startup/start-nebulas-privatenet.sh $HOME
-chmod +x $HOME/start-nebulas-privatenet.sh
-
-echo "########################"
-echo "Creating Explorer Startup Script"
-echo "########################"
-cd ~
-mv $HOME/NebuEnv/startup/explorer-privatenet.sh $HOME
-chmod +x $HOME/explorer-privatenet.sh
-
-
-### Prepare Autostart
-crontab -l > mycron
-echo "@reboot root $HOME/.profile; /root/start-nebulas-privatenet.sh " >> mycron
-echo "@reboot root $HOME/.profile; /root/explorer-privatenet.sh " >> mycron
-crontab mycron
-rm mycron
